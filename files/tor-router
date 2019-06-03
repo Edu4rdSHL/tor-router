@@ -2,21 +2,42 @@
 # Executable file to create rules for transparent proxy
 # Destinations you do not want routed through Tor
 NON_TOR="192.168.1.0/24 192.168.0.0/24"
-# the UID Tor runs as, change this accordingly for your OS
-TOR_UID="43"
+# the UID Tor runs as, actually only support for Debian and ArchLinux as been added.
+if command -v pacman > /dev/null; then
+  TOR_UID=$(id -u tor)
+elif command -v apt > /dev/null; then
+  TOR_UID=$(id -u debian-tor)
+else
+  echo "Unknown distro, please create report the issue to https://gitlab.com/edu4rdshl/tor-router/issues"
+  exit
+fi
+
 # Tor's TransPort
 TRANS_PORT="9040"
-iptables -F
-iptables -t nat -F
-iptables -t nat -A OUTPUT -m owner --uid-owner $TOR_UID -j RETURN
-iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
-for NET in $NON_TOR 127.0.0.0/9 127.128.0.0/10; do
-	iptables -t nat -A OUTPUT -d $NET -j RETURN
-done
-iptables -t nat -A OUTPUT -p tcp --syn -j REDIRECT --to-ports $TRANS_PORT
-iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-for NET in $NON_TOR 127.0.0.0/8; do
-	iptables -A OUTPUT -d $NET -j ACCEPT
-done
-iptables -A OUTPUT -m owner --uid-owner $TOR_UID -j ACCEPT
-iptables -A OUTPUT -j REJECT
+
+if ! command -v tor > /dev/null; then
+  echo "You need to install the tor package."
+  exit
+elif ! systemctl is-active tor.service > /dev/null; then
+  echo "The tor service is not active, please start the tor service before running the script."
+  exit
+else
+  iptables -F
+  iptables -t nat -F
+  iptables -t nat -A OUTPUT -m owner --uid-owner $TOR_UID -j RETURN
+  iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
+
+  for NET in $NON_TOR 127.0.0.0/9 127.128.0.0/10; do
+    iptables -t nat -A OUTPUT -d $NET -j RETURN
+  done
+
+  iptables -t nat -A OUTPUT -p tcp --syn -j REDIRECT --to-ports $TRANS_PORT
+  iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+  for NET in $NON_TOR 127.0.0.0/8; do
+    iptables -A OUTPUT -d $NET -j ACCEPT
+  done
+
+  iptables -A OUTPUT -m owner --uid-owner $TOR_UID -j ACCEPT
+  iptables -A OUTPUT -j ACCEPT
+fi
