@@ -8,7 +8,7 @@ if command -v pacman > /dev/null; then
 elif command -v apt > /dev/null; then
   TOR_UID=$(id -u debian-tor)
 else
-  echo "Unknown distro, please create report the issue to https://gitlab.com/edu4rdshl/tor-router/issues"
+  echo "Unknown distro, please create report the issue to https://github.com/edu4rdshl/tor-router/issues"
   exit
 fi
 
