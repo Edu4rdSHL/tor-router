@@ -2,11 +2,15 @@
 
 Tor Router allow you to use TOR as a transparent proxy and send all your trafic under TOR **INCLUDING DNS REQUESTS**, the only that you need is: a system using systemd (if you want to use the service) and tor.
 
+TOR router doesn't touch system files as the rest of tools for routing  your taffic does and the reason  is: there isn't needed to move files for routing traffic, also moving files is a bad idea since that a fail in the script/tool can break your system connection without you knowing what has happened.
+
 # Script to install on distros using SystemD only
 
 If you are using BlackArch Linux (https://blackarch.org) you can install the script from the repos using the following command: `# pacman -S tor-router`
 
 To install from source:
+
+**Note that you need BASH, not sh**
 
 ```
 ~$ git clone https://gitlab.com/edu4rdshl/tor-router.git && cd ./tor-router && sudo bash install.sh
