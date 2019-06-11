@@ -13,7 +13,7 @@ To install from source:
 **Note that you need BASH, not sh**
 
 ```
-~$ git clone https://gitlab.com/edu4rdshl/tor-router.git && cd ./tor-router && sudo bash install.sh
+~$ git clone https://gitub.com/edu4rdshl/tor-router.git && cd ./tor-router && sudo bash install.sh
 ```
 
 # Usage
@@ -24,7 +24,7 @@ In distros using systemd, you should consideer using the install.sh script, anyw
 
 1. Open a terminal and clone the script using the following command:
 ```
-~$ git clone https://gitlab.com/edu4rdshl/tor-router.git && cd tor-router/files
+~$ git clone https://gitub.com/edu4rdshl/tor-router.git && cd tor-router/files
 ```
 2. Put the following lines at the end of /etc/tor/torrc
 ```
