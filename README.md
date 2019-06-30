@@ -46,6 +46,10 @@ DNSPort 5353
 
 Delete the tor-router configuration lines in /etc/tor/torrc, disable the tor-router.service using systemctl (if you used the install.sh script), remove /usr/bin/tor-router, /etc/systemd/system/tor-router.service and restart your computer.
 
+# Considerations
+
+1) Tor-router actually only support IPv4 traffic, support for IPv6 traffic will be added soon. (See https://github.com/Edu4rdSHL/tor-router/issues/1)
+
 # Proof of concept
 
 After of run the script, follow the next steps to ensure that all is working as expected:
