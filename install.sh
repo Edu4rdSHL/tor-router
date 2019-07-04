@@ -43,7 +43,7 @@ if command -v tor >/dev/null && command -v systemctl > /dev/null ; then
         echo -e "\nYou haven't curl installed, try opening https://check.torproject.org/ in your browser and look for 'Congratulations.'"
       fi
     else
-      echo -e "\nAn error as ocurrer, please open a issue in https://gitlab.com/Edu4rdSHL/tor-router/issues including log info and your Linux distribution."
+      echo -e "\nAn error as ocurrer, please open a issue in https://github.com/Edu4rdSHL/tor-router/issues including log info and your Linux distribution."
     fi
   fi
 else
