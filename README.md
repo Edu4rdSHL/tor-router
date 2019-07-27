@@ -4,6 +4,8 @@ Tor Router allow you to use TOR as a transparent proxy and send all your trafic 
 
 TOR router doesn't touch system files as the rest of tools for routing  your taffic does and the reason  is: there isn't needed to move files for routing traffic, also moving files is a bad idea since that a fail in the script/tool can break your system connection without you knowing what has happened.
 
+**Note:** Tor-router doesn't route UDP packets because TOR doesn't support it: https://2019.www.torproject.org/docs/faq.html.en#TransportIPnotTCP
+
 # Script to install on distros using SystemD only
 
 If you are using BlackArch Linux (https://blackarch.org) you can install the script from the repos using the following command: `# pacman -S tor-router`
