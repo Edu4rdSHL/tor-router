@@ -23,7 +23,7 @@ if ! command -v tor > /dev/null; then
 elif ! systemctl is-active tor.service > /dev/null; then
   echo "The tor service is not active, please start the tor service before running the script."
   exit
-if ! command -v iptables > /dev/null; then
+elif ! command -v iptables > /dev/null; then
   echo "You need to install the iptables package."
   exit
 else
