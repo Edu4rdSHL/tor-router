@@ -4,9 +4,9 @@
 
 [Service]
  Type=simple
- ExecStart=/usr/bin/tor-router
+ ExecStart=/usr/bin/tor-router start
  RemainAfterExit=yes
- ExecStop=/usr/bin/iptables -F OUTPUT
+ ExecStop=/usr/bin/tor-router stop
  TimeoutStopSec=180
  KillMode=process
  KillSignal=SIGINT
