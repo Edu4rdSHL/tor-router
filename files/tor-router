@@ -59,14 +59,14 @@ case "$1" in
 	fi
 	;;
     stop)
-	if ! -f "$RULES"; then
-	    echo "$RULES does not exist. Not doing anything."
-	    exit
-	else
+	if test -f "$RULES"; then
 	    echo "Restoring previous rules from $RULES"
 	    iptables -t nat -F
-	    iptables-restore < $RULES
-	    rm $RULES
+	    iptables-restore < "$RULES"
+	    rm "$RULES"
+	else
+	    echo "$RULES does not exist. Not doing anything."
+	    exit
 	fi
 	;;
     restart)
