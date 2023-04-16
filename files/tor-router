@@ -63,7 +63,7 @@ case "$1" in
 	    echo "$RULES does not exist. Not doing anything."
 	    exit
 	else
-	    echo "Restoring previous rules from $RULES..."
+	    echo "Restoring previous rules from $RULES"
 	    iptables -t nat -F
 	    iptables-restore < $RULES
 	    rm $RULES
