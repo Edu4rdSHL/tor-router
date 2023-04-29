@@ -6,74 +6,75 @@ RULES="/var/tmp/tor-router.save"
 TRANS_PORT="9040"
 
 case "$1" in
-    start)
+start)
 	if test -f "$RULES"; then
-	    echo "$RULES exists. Either delete it, or stop tor-router first."
-	    exit
+		echo "$RULES exists. Either delete it, or stop tor-router first."
+		exit 1
 	else
-	    iptables-save > $RULES
-	    # Executable file to create rules for transparent proxy
-	    # Destinations you do not want routed through Tor
-	    NON_TOR="192.168.1.0/24 192.168.0.0/24"
-	    # the UID Tor runs as, actually only support for Debian, ArchLinux and Fedora as been added.
-	    if command -v pacman > /dev/null; then
-		TOR_UID=$(id -u tor)
-	    elif command -v apt > /dev/null; then
-		TOR_UID=$(id -u debian-tor)
-	    elif command -v dnf > /dev/null; then
-		TOR_UID=$(id -u toranon)
-	    else
-		echo "Unknown distro, please create report the issue to https://github.com/edu4rdshl/tor-router/issues"
-		exit
-	    fi
-	    	    
-	    if ! command -v tor > /dev/null; then
-		echo "You need to install the tor package."
-		exit
-	    elif ! systemctl is-active tor.service > /dev/null; then
-		echo "The tor service is not active, please start the tor service before running the script."
-		exit
-	    elif ! command -v iptables > /dev/null; then
-		echo "You need to install the iptables package."
-		exit
-	    else
-		iptables -F
+		iptables-save >$RULES
+		# Executable file to create rules for transparent proxy
+		# Destinations you do not want routed through Tor
+		NON_TOR="192.168.1.0/24 192.168.0.0/24"
+		# the UID Tor runs as, actually only support for Debian, ArchLinux and Fedora as been added.
+		if command -v pacman >/dev/null; then
+			TOR_UID=$(id -u tor)
+		elif command -v apt >/dev/null; then
+			TOR_UID=$(id -u debian-tor)
+		elif command -v dnf >/dev/null; then
+			TOR_UID=$(id -u toranon)
+		else
+			echo "Unknown distro, please create report the issue to https://github.com/edu4rdshl/tor-router/issues"
+			exit 1
+		fi
+
+		if ! command -v tor >/dev/null; then
+			echo "You need to install the tor package."
+			exit 1
+		elif ! systemctl is-active tor.service >/dev/null; then
+			echo "The tor service is not active, please start the tor service before running the script."
+			exit 1
+		elif ! command -v iptables >/dev/null; then
+			echo "You need to install the iptables package."
+			exit 1
+		else
+			iptables -F
+			iptables -t nat -F
+			iptables -t nat -A OUTPUT -m owner --uid-owner $TOR_UID -j RETURN
+			iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
+
+			for NET in $NON_TOR 127.0.0.0/9 127.128.0.0/10; do
+				iptables -t nat -A OUTPUT -d $NET -j RETURN
+			done
+
+			iptables -t nat -A OUTPUT -p tcp --syn -j REDIRECT --to-ports $TRANS_PORT
+			iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+			for NET in $NON_TOR 127.0.0.0/8; do
+				iptables -A OUTPUT -d $NET -j ACCEPT
+			done
+
+			iptables -A OUTPUT -m owner --uid-owner $TOR_UID -j ACCEPT
+			iptables -A OUTPUT -j ACCEPT
+		fi
+	fi
+	;;
+stop)
+	if test -f "$RULES"; then
+		echo "Restoring previous rules from $RULES"
 		iptables -t nat -F
-		iptables -t nat -A OUTPUT -m owner --uid-owner $TOR_UID -j RETURN
-		iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
-
-		for NET in $NON_TOR 127.0.0.0/9 127.128.0.0/10; do
-		    iptables -t nat -A OUTPUT -d $NET -j RETURN
-		done
-
-		iptables -t nat -A OUTPUT -p tcp --syn -j REDIRECT --to-ports $TRANS_PORT
-		iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-
-		for NET in $NON_TOR 127.0.0.0/8; do
-		    iptables -A OUTPUT -d $NET -j ACCEPT
-		done
-
-		iptables -A OUTPUT -m owner --uid-owner $TOR_UID -j ACCEPT
-		iptables -A OUTPUT -j ACCEPT
-	    fi
-	fi
-	;;
-    stop)
-	if test -f "$RULES"; then
-	    echo "Restoring previous rules from $RULES"
-	    iptables -t nat -F
-	    iptables-restore < "$RULES"
-	    rm "$RULES"
+		iptables-restore <"$RULES"
+		rm "$RULES"
 	else
-	    echo "$RULES does not exist. Not doing anything."
-	    exit
+		echo "$RULES does not exist. Not doing anything."
+		exit
 	fi
 	;;
-    restart)
+restart)
 	stop
 	sleep 2
 	start
 	;;
-    *)
+*)
 	echo "Usage: $0 {start|stop|restart}"
+	;;
 esac
