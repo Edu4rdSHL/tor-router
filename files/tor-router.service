@@ -1,6 +1,7 @@
 [Unit]
  Description=Start rules for transparent tor proxy
  After=network-online.target tor.service
+ Requires=tor.service
 
 [Service]
  Type=simple
