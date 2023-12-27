@@ -5,8 +5,8 @@ RULES="/var/tmp/tor-router.save"
 # Tor's TransPort
 TRANS_PORT="9040"
 
-case "$1" in
-start)
+function startTR()
+{
 	if test -f "$RULES"; then
 		echo "$RULES exists. Either delete it, or stop tor-router first."
 		exit 1
@@ -54,12 +54,14 @@ start)
 			done
 
 			iptables -A OUTPUT -m owner --uid-owner "$TOR_UID" -j ACCEPT
-			iptables -A OUTPUT -j ACCEPT
+			iptables -A OUTPUT -j REJECT # ACCEPTから変更
 		fi
 	fi
-	;;
-stop)
-	if test -f "$RULES"; then
+}
+
+function stopTR()
+{
+		if test -f "$RULES"; then
 		echo "Restoring previous rules from $RULES"
 		iptables -t nat -F
 		iptables-restore <"$RULES"
@@ -68,11 +70,23 @@ stop)
 		echo "$RULES does not exist. Not doing anything."
 		exit
 	fi
+}
+
+function restartTR()
+{
+	stopTR
+	startTR
+}
+
+case "$1" in
+start)
+	startTR
+	;;
+stop)
+	stopTR
 	;;
 restart)
-	stop
-	sleep 2
-	start
+	restartTR
 	;;
 *)
 	echo "Usage: $0 {start|stop|restart}"
