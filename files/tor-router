@@ -1,12 +1,10 @@
 #!/bin/bash
-
 RULES="/var/tmp/tor-router.save"
 
 # Tor's TransPort
 TRANS_PORT="9040"
-
-case "$1" in
-start)
+function startTR()
+{
 	if test -f "$RULES"; then
 		echo "$RULES exists. Either delete it, or stop tor-router first."
 		exit 1
@@ -57,8 +55,9 @@ start)
 			iptables -A OUTPUT -j ACCEPT
 		fi
 	fi
-	;;
-stop)
+}
+function stopTR()
+{
 	if test -f "$RULES"; then
 		echo "Restoring previous rules from $RULES"
 		iptables -t nat -F
@@ -68,11 +67,24 @@ stop)
 		echo "$RULES does not exist. Not doing anything."
 		exit
 	fi
+
+}
+function restartTR()
+{
+	stopTR
+	sleep 2
+	startTR
+}
+
+case "$1" in
+start)
+	startTR
+	;;
+stop)
+	stopTR
 	;;
 restart)
-	stop
-	sleep 2
-	start
+	restartTR
 	;;
 *)
 	echo "Usage: $0 {start|stop|restart}"
