@@ -12,7 +12,7 @@ function startTR()
 		iptables-save >$RULES
 		# Executable file to create rules for transparent proxy
 		# Destinations you do not want routed through Tor
-		NON_TOR="192.168.1.0/24 192.168.0.0/24"
+		NON_TOR="192.168.0.0/16 172.16.0.0/12 10.0.0.0/8" 
 		# the UID Tor runs as, actually only support for Debian, ArchLinux and Fedora as been added.
 		if command -v pacman >/dev/null; then
 			TOR_UID=$(id -u tor)
@@ -45,7 +45,7 @@ function startTR()
 			iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
 
 			# executable local addresses			
-			for NET in $NON_TOR 127.0.0.0/9 127.128.0.0/10 127.0.0.0/8;; do
+			for NET in $NON_TOR 127.0.0.0/9 127.128.0.0/10 127.0.0.0/8; do
 				iptables -t nat -A OUTPUT -d "$NET" -j RETURN
 				iptables -A OUTPUT -d "$NET" -j ACCEPT
 			done
