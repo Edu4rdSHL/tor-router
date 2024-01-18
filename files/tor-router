@@ -11,10 +11,9 @@ start)
 		echo "$RULES exists. Either delete it, or stop tor-router first."
 		exit 1
 	else
-		iptables-save >$RULES
 		# Executable file to create rules for transparent proxy
 		# Destinations you do not want routed through Tor
-		NON_TOR="192.168.1.0/24 192.168.0.0/24"
+		NON_TOR="192.168.1.0/24 192.168.0.0/24 10.0.0.0/8"
 		# the UID Tor runs as, actually only support for Debian, ArchLinux and Fedora as been added.
 		if command -v pacman >/dev/null; then
 			TOR_UID=$(id -u tor)
@@ -37,16 +36,19 @@ start)
 			echo "You need to install the iptables package."
 			exit 1
 		else
+			# Only save the rules when we are sure that everything is working
+			iptables-save >$RULES
+
 			iptables -F
-			iptables -t nat -F
 			iptables -t nat -A OUTPUT -m owner --uid-owner "$TOR_UID" -j RETURN
-			iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
+			iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 6669
 
 			for NET in $NON_TOR 127.0.0.0/9 127.128.0.0/10; do
 				iptables -t nat -A OUTPUT -d "$NET" -j RETURN
 			done
 
 			iptables -t nat -A OUTPUT -p tcp --syn -j REDIRECT --to-ports $TRANS_PORT
+			iptables -t nat -A OUTPUT -p udp -j REDIRECT --to-ports $TRANS_PORT
 			iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 			for NET in $NON_TOR 127.0.0.0/8; do
@@ -54,14 +56,14 @@ start)
 			done
 
 			iptables -A OUTPUT -m owner --uid-owner "$TOR_UID" -j ACCEPT
-			iptables -A OUTPUT -j ACCEPT
 		fi
 	fi
 	;;
+
 stop)
 	if test -f "$RULES"; then
 		echo "Restoring previous rules from $RULES"
-		iptables -t nat -F
+		iptables -F
 		iptables-restore <"$RULES"
 		rm "$RULES"
 	else
@@ -69,9 +71,10 @@ stop)
 		exit
 	fi
 	;;
+
 restart)
 	stop
-	sleep 2
+	sleep 1
 	start
 	;;
 *)
